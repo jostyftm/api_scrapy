@@ -23,12 +23,12 @@ Route::get('/', function () {
     // $scrapy = new Spider($search);
     // $scrapy->run();
 
-    $config = WebsiteConfiguration::find(2);
-    $search = Search::where('website_id', '=', $config->website_id)->first();
+    // $config = WebsiteConfiguration::find(2);
+    // $search = Search::where('website_id', '=', $config->website_id)->first();
 
-    $scrapy = new Spider($search);
-    $reults = $scrapy->runTest("socket");
+    // $scrapy = new Spider($search);
+    // $reults = $scrapy->runTest("socket");
 
-    dd($reults);
-    // return view('welcome');
+    // dd($reults);
+    return view('welcome');
 });
