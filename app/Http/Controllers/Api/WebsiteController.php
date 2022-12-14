@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\WebisteSaveRequest;
 use App\Http\Requests\WebsiteUpdateRequest;
+use App\Models\Search;
+use App\Models\Spider;
 use App\Models\Website;
 use App\Models\WebsiteConfiguration;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class WebsiteController extends ApiController
@@ -85,5 +88,37 @@ class WebsiteController extends ApiController
         $website->delete();
 
         return $this->successResponse([], 204);
+    }
+
+
+    /**
+     * 
+     * 
+     */
+    public function getConfig(Website $website)
+    {
+        $website->webConfiguration;
+
+        return $this->successResponse($website);
+    }
+
+    public function updateConfig(Request $request, WebsiteConfiguration $websiteConfiguration)
+    {
+        $websiteConfiguration->fill($request->all());
+        $websiteConfiguration->update();
+
+        return $this->successResponse($websiteConfiguration);
+    }
+
+    public function testConfig(Request $request, WebsiteConfiguration $websiteConfiguration)
+    {
+
+        
+        $search = Search::where('website_id', '=', $websiteConfiguration->website_id)->first();
+        
+        $scrapy = new Spider($search);
+        $results = $scrapy->runTest($request->q);
+
+        return $this->successResponse($results);
     }
 }

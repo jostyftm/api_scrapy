@@ -9,6 +9,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -100,6 +101,10 @@ class Handler extends ExceptionHandler
 
         if($exception instanceof QueryException){
             return $this->resolveQueryException($exception);
+        }
+
+        if($exception instanceof InvalidArgumentException){
+            return $this->errorResponse([], $exception->getMessage(), 500);
         }
 
         if (config('app.debug')) {

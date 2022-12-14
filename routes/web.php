@@ -2,6 +2,7 @@
 
 use App\Models\Search;
 use App\Models\Spider;
+use App\Models\WebsiteConfiguration;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,9 +18,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
 
-    $search = Search::with('website.webConfiguration')->where('id', '=', 5)->first();
+    // $search = Search::with('website.webConfiguration')->where('id', '=', 3)->first();
+
+    // $scrapy = new Spider($search);
+    // $scrapy->run();
+
+    $config = WebsiteConfiguration::find(2);
+    $search = Search::where('website_id', '=', $config->website_id)->first();
 
     $scrapy = new Spider($search);
+    $reults = $scrapy->runTest("socket");
 
+    dd($reults);
     // return view('welcome');
 });

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Support\Facades\Storage;
 
 use Goutte\Client;
-use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Symfony\Component\DomCrawler\Crawler;
 
 class Spider 
@@ -40,6 +40,7 @@ class Spider
      */
     private $websiteConfiguration;
 
+
     /**
      * 
      */
@@ -48,15 +49,54 @@ class Spider
         $this->client = new Client();
         $this->search = $search;
         $this->website = $search->website;
-        $this->websiteConfiguration = $this->website->webConfiguration;
+        $this->websiteConfiguration = $this->website->webConfiguration;        
+    }
 
-        $query = $this->websiteConfiguration->query_search_variable.str_replace(" ", $this->websiteConfiguration->query_separator, $this->search->query);
-        $url = $this->website->url.$query;
 
-        $crawler = $this->client->request('GET', $url);
+    /**
+     * 
+     */
+    public function run()
+    {
+        $crawler = $this->client->request('GET', $this->buildUrl($this->search->query));
 
-        
         $this->parsePosts($crawler);
+    }
+
+    /**
+     * 
+     */
+    public function runTest($query)
+    {
+        $crawler = $this->client->request('GET', $this->buildUrl("socket"));
+
+        $resources = $crawler->filter($this->websiteConfiguration->tag_resource_list_posts)->each(function(Crawler $node){
+            
+            $tagLink = $node->filter($this->websiteConfiguration->tag_resource_link);
+
+            if($tagLink->count() == 0)
+                throw new InvalidArgumentException("{$this->websiteConfiguration->tag_resource_link} esta mal configurado");
+
+            $linkA = $tagLink->first()->link()->getUri();
+
+            $crawlerPost = $this->client->request('GET', $linkA);
+
+            return $this->parsePost($crawlerPost, false);
+        });
+
+        return $resources;
+    }
+
+
+    /**
+     * 
+     */
+    private function buildUrl($query)
+    {
+        $queryBuild = $this->websiteConfiguration->query_search_variable.str_replace(" ", $this->websiteConfiguration->query_separator, $query);
+        $url = $this->website->url.$queryBuild;
+
+        return $url;
     }
 
     /**
@@ -65,10 +105,17 @@ class Spider
     private function parsePosts(Crawler $crawler)
     {
         
-        // dd($crawler->filter("#p_lt_ctl05_pageplaceholder_p_lt_ctl02_SmartSearchDialogWithResults_srchResults_pnlSearchResults > div"));
+        $reources = $crawler->filter($this->websiteConfiguration->tag_resource_list_posts)->each(function(Crawler $node){
 
-        $crawler->filter($this->websiteConfiguration->tag_resource_list_posts)->each(function($node){
-            $this->parsePost($node);
+            $linkA = $node->filter($this->websiteConfiguration->tag_resource_link)->first()->link()->getUri();
+
+            $resource = Resource::where('url', '=', $linkA)->first();
+
+            if(is_null($resource)){
+
+                $crawlerPost = $this->client->request('GET', $linkA);
+                return $this->parsePost($crawlerPost);
+            }
         });
 
         Storage::append("scrapy.txt", "________________________________\n");
@@ -87,45 +134,45 @@ class Spider
                 $this->parsePosts($crawler);
             }
         }
-
     }
     
     /**
      * 
      */
-    private function parsePost(Crawler $crawler)
+    private function parsePost(Crawler $crawler, $save = true)
     {
-
-        try{
         
-            $title = $crawler->filter($this->websiteConfiguration->tag_resource_title)->first()->text();
-            $link = $crawler->filter($this->websiteConfiguration->tag_resource_link)->first()->link()->getUri();
-            
-            $nodeDescription = $crawler->filter($this->websiteConfiguration->tag_resource_description);
+        $link = $crawler->getUri();
+        $tagTitle = $crawler->filter($this->websiteConfiguration->tag_resource_title);
+        
+        if($tagTitle->count() == 0)
+            throw new InvalidArgumentException("{$this->websiteConfiguration->tag_resource_title} esta mal configurado");
 
-            if($nodeDescription->count() > 0){
+        $title = $tagTitle->text();
+        $description = '';
 
-                $description = $nodeDescription->first()->text();
+        $descriptionResult = $crawler->filter($this->websiteConfiguration->tag_resource_description)->each(function(Crawler $node){
+            return $node->text();
+        });
 
-                $resource = Resource::where('url', '=', $link)->first();
-                
-                if(is_null($resource)){
-                    
-                    Resource::create([
-                        'title'             =>  $title,
-                        'description'       =>  $description,
-                        'url'               =>  $link,
-                        'resource_type_id'  =>  1,
-                        'search_id'         =>  1
-                    ]);
-                    
-                }
-                Storage::append("scrapy.txt", json_encode(["title" => $title, "subtitle" => $link, "description" => $description]));
-            }
-            
-        }catch(\InvalidArgumentException $e){
-            
-            Storage::append("error_scrapy.log", "Error...");
+        foreach($descriptionResult as $value) {
+            $description .= "<p>{$value}</p>";
         }
+                
+        $resource = new Resource([
+            'title'             =>  $title,
+            'description'       =>  $description,
+            'url'               =>  $link,
+            'resource_type_id'  =>  1,
+            'search_id'         =>  $this->search->id
+        ]);
+
+        if($save){
+
+            $resource->save();
+            Storage::append("scrapy.txt", json_encode(["title" => $title, "subtitle" => $link, "description" => $description]));
+        }    
+        
+        return $resource;
     }
 }
