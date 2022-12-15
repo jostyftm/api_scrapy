@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\ResourceTypeController;
 use App\Http\Controllers\Api\SearchController;
-use App\Http\Controllers\Api\Usercontroller;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WebsiteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
