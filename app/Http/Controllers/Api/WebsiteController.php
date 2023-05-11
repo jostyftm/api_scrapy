@@ -113,5 +113,12 @@ class WebsiteController extends ApiController
 
     public function testConfig(Request $request, WebsiteConfiguration $websiteConfiguration)
     {
+        
+        $search = Search::where('website_id', '=', $websiteConfiguration->website_id)->first();
+        
+        $scrapy = new Spider($search);
+        $results = $scrapy->runTest($request->q);
+
+        return $this->successResponse($results);
     }
 }
