@@ -17,7 +17,7 @@ class CreateResourcesTable extends Migration
             $table->id();
             $table->string('title', 255);
             $table->text('description')->nullable();
-            $table->string('url', 255)->unique();
+            $table->string('url', 255);
             $table->unsignedInteger('resource_type_id');
             $table->unsignedBigInteger('search_id');
             $table->timestamps();
