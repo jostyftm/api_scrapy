@@ -32,4 +32,16 @@ class Search extends Model
         return $this->belongsToMany(Keyword::class, 'search_keywords', 'search_id', 'keyword_id');
     }
 
+
+    /**
+     * 
+     */
+    public function getKeyWords()
+    {
+        $articles = array('el', 'la', 'los', 'en', 'un', 'una', 'unas', 'unos', 'con', 'de', 'que');
+        
+        $array = explode(' ',preg_replace('/\b('.implode('|', $articles).')\b/','', $this->query));
+
+        return array_filter($array, fn($value)=> !is_null($value) && $value !== '');
+    }
 }

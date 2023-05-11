@@ -63,7 +63,7 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
-        // dd($e);
+        dd($e);
         $response = $this->handleException($request, $e);
         return $response;
     }

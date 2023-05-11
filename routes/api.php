@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\ResourceTypeController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\api\SearchResourceController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WebsiteController;
 use Illuminate\Http\Request;
@@ -34,4 +36,8 @@ Route::put('websites/{websiteConfiguration}/configuration', [WebsiteController::
 Route::post('websites/{websiteConfiguration}/test', [WebsiteController::class, 'testConfig']);
 
 Route::resource('searches', SearchController::class);
+Route::get('resources/search', [ResourceController::class, 'search']);
+Route::resource('resources', ResourceController::class);
 Route::resource('users', Usercontroller::class);
+
+Route::get('search', [SearchResourceController::class, 'index']);

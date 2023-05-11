@@ -1,8 +1,9 @@
 <?php
 
+use App\Helper;
+use App\Models\Resource;
 use App\Models\Search;
 use App\Models\Spider;
-use App\Models\WebsiteConfiguration;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -11,24 +12,16 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
+| routes are loaded by the RouteServiceProvider whereHasin a group which
 | contains the "web" middleware group. Now create something great!
 |
 */
 
 Route::get('/', function () {
 
-    // $search = Search::with('website.webConfiguration')->where('id', '=', 3)->first();
+    $search = Search::whereHas('website.webConfiguration',function($q){
+        $q->where('state', '=', true);
+    })->get();
 
-    // $scrapy = new Spider($search);
-    // $scrapy->run();
-
-    // $config = WebsiteConfiguration::find(2);
-    // $search = Search::where('website_id', '=', $config->website_id)->first();
-
-    // $scrapy = new Spider($search);
-    // $reults = $scrapy->runTest("socket");
-
-    // dd($reults);
-    return view('welcome');
+    return response()->json($search);
 });

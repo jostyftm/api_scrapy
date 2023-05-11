@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Jobs\ProcessPost;
+use App\Jobs\ProcessSpider;
 use Illuminate\Support\Facades\Storage;
 
 use Goutte\Client;
@@ -68,8 +70,13 @@ class Spider
      */
     public function runTest($query)
     {
-        $crawler = $this->client->request('GET', $this->buildUrl("socket"));
+        $crawler = $this->client->request('GET', $this->buildUrl($query));
 
+        $resourcesTag = $crawler->filter($this->websiteConfiguration->tag_resource_list_posts);
+
+        if($resourcesTag->count() == 0)
+            throw new InvalidArgumentException("{$this->websiteConfiguration->tag_resource_list_posts} esta mal configurado");
+            
         $resources = $crawler->filter($this->websiteConfiguration->tag_resource_list_posts)->each(function(Crawler $node){
             
             $tagLink = $node->filter($this->websiteConfiguration->tag_resource_link);
@@ -103,25 +110,22 @@ class Spider
      * 
      */
     private function parsePosts(Crawler $crawler)
-    {
-        
-        $reources = $crawler->filter($this->websiteConfiguration->tag_resource_list_posts)->each(function(Crawler $node){
+    {   
+        $s = $this->search;
+        $links = $crawler->filter($this->websiteConfiguration->tag_resource_list_posts)->each(function(Crawler $node){
 
             $linkA = $node->filter($this->websiteConfiguration->tag_resource_link)->first()->link()->getUri();
 
-            $resource = Resource::where('url', '=', $linkA)->first();
-
-            if(is_null($resource)){
-
-                $crawlerPost = $this->client->request('GET', $linkA);
-                return $this->parsePost($crawlerPost);
-            }
+            return $linkA;
         });
 
-        Storage::append("scrapy.txt", "________________________________\n");
+        foreach($links AS $key => $link){
+            dispatch(new ProcessSpider($link, $this->search));
+        }
         
         if(
-            $this->websiteConfiguration->tag_resource_next_page !== " "
+            $this->websiteConfiguration->tag_resource_next_page !== " " &&
+            $this->websiteConfiguration->tag_resource_next_page !== null
         ){
 
             $nextPage = $crawler->filter($this->websiteConfiguration->tag_resource_next_page);
@@ -159,19 +163,13 @@ class Spider
             $description .= "<p>{$value}</p>";
         }
                 
-        $resource = new Resource([
+        $resource = [
             'title'             =>  $title,
             'description'       =>  $description,
             'url'               =>  $link,
             'resource_type_id'  =>  1,
             'search_id'         =>  $this->search->id
-        ]);
-
-        if($save){
-
-            $resource->save();
-            Storage::append("scrapy.txt", json_encode(["title" => $title, "subtitle" => $link, "description" => $description]));
-        }    
+        ]; 
         
         return $resource;
     }

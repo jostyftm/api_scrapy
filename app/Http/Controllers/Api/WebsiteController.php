@@ -105,6 +105,7 @@ class WebsiteController extends ApiController
     public function updateConfig(Request $request, WebsiteConfiguration $websiteConfiguration)
     {
         $websiteConfiguration->fill($request->all());
+        $websiteConfiguration->state = ($request->state == "true") ? true : false;
         $websiteConfiguration->update();
 
         return $this->successResponse($websiteConfiguration);
@@ -112,13 +113,5 @@ class WebsiteController extends ApiController
 
     public function testConfig(Request $request, WebsiteConfiguration $websiteConfiguration)
     {
-
-        
-        $search = Search::where('website_id', '=', $websiteConfiguration->website_id)->first();
-        
-        $scrapy = new Spider($search);
-        $results = $scrapy->runTest($request->q);
-
-        return $this->successResponse($results);
     }
 }

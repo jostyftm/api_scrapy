@@ -13,7 +13,6 @@ class Website extends Model
 
     protected $fillable = [
         'name',
-        'state',
         'url'
     ];
 
