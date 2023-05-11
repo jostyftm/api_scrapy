@@ -18,10 +18,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-
-    $search = Search::whereHas('website.webConfiguration',function($q){
-        $q->where('state', '=', true);
-    })->get();
-
-    return response()->json($search);
 });
