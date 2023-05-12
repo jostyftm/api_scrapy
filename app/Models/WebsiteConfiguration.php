@@ -23,6 +23,16 @@ class WebsiteConfiguration extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'state' => 'boolean',
+    ];
+
+
+    /**
      * 
      */
     public function website(): BelongsTo
