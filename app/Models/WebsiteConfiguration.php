@@ -11,6 +11,7 @@ class WebsiteConfiguration extends Model
     use HasFactory;
 
     protected $fillable = [
+        'state',
         'website_id',
         'query_search_variable',
         'query_separator',
