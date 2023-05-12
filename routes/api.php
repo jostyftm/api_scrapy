@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\ResourceTypeController;
 use App\Http\Controllers\Api\SearchController;
-use App\Http\Controllers\api\SearchResourceController;
+use App\Http\Controllers\Api\SearchResourceController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WebsiteController;
 use Illuminate\Http\Request;
